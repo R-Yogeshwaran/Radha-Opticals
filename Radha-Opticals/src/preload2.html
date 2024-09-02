@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="preload1.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+    <!-- <script src="https://cdn.jsdelivr.net/npm/nodemailer@6.6.3/lib/nodemailer.js"></script> -->
+    <script src="index.js"></script>
+</head>
+<body>
+     <!-- top navigation -->
+     <div class="top-nav">
+      <div>
+       
+          <img onclick="navigateToPage('index')" class="top-nav-left-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688030495/logo_75-01_vgdwyi.png"/>
+       
+      </div>
+  
+      <div>
+        
+          <img onclick="navigateToPage('preload1')" class="top-nav-right-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688032228/adduser_li07on.png"/>
+  
+      </div>
+    </div>
+      <!-- User Inputs -->
+      <div style="width: 100%;height: 95%; display: flex;justify-content: center;align-items: center;flex-direction: column;">
+          <div>
+              <h1 id="custid" style="font-size: 30px;text-align: start;margin-bottom: 2%;"></h1>
+          </div>
+          <div class="input-cont"> 
+  
+          <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+              <h1 id="username" style="font-size: 20px;font-weight: bold;"></h1>
+          </div>
+  
+          <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+              <h1 id="usercontact" style="font-size: 20px;font-weight: bold;"></h1>
+          </div>
+  
+          <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+              <h1 id="gmail" style="font-size: 20px;font-weight: bold;"></h1>
+          </div>
+  
+          <div style="display: flex;flex-direction: row;align-items: center; justify-content: space-between;width: 45%;margin: 30px;">
+              <h1 id="address" style="font-size: 20px;font-weight: bold;"></h1>
+          </div>
+  
+          <div style="display: flex;flex-direction: row;align-items: center; justify-content: space-between;width: 45%;margin: 30px;">
+              <h1 id="cur_points" style="font-size: 20px;font-weight: bold;"></h1>
+          </div>
+
+          
+        <button id="txt" onclick="AddPoint()" style="width: 200px;" class="button is-info">ENTER</button>
+      </div>
+      </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    
+    <script>
+     function navigateToPage(pageName) {
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.send('navigate-to-page', pageName);
+    }
+
+
+const { ipcRenderer } = require('electron');
+
+// Receive the data from the main process
+ipcRenderer.on('page-data', (event, data) => {
+  // Use the received data as needed
+  console.log(data);
+});
+
+    const firebaseConfig = {
+          apiKey: "AIzaSyASRfo6_z-BSQr-lVWqf57gy24qSI7GxbY",
+          authDomain: "radha-opticals-6c267.firebaseapp.com",
+          projectId: "radha-opticals-6c267",
+          storageBucket: "radha-opticals-6c267.appspot.com",
+          messagingSenderId: "122285195240",
+          appId: "1:122285195240:web:c699c53072d194431fae5d",
+          measurementId: "G-BK74PT22ZW"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+      // Get the query parameters from the URL
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+
+      // Get the username value
+      const username = urlParams.get('username');
+      const contact = urlParams.get('contact');
+      const email = urlParams.get('email');
+      const address = urlParams.get('address');
+      const customerid = urlParams.get('id');
+      const point = urlParams.get('pointsv');
+      const amnt = urlParams.get('amount');
+
+      // Display the userid
+      const useridElement = document.getElementById('custid');
+      useridElement.textContent = customerid;
+
+      // Display the username
+      const usernameElement = document.getElementById('username');
+      usernameElement.textContent = 'Customer Name: ' + username;
+
+      // Display the contact
+      const usercontactElement = document.getElementById('usercontact');
+      usercontactElement.textContent = 'Customer Contact: ' + contact;
+
+      // Display the mail
+      const usermailElement = document.getElementById('gmail');
+      usermailElement.textContent = 'Customer Email: ' + email;
+
+      // Display the address
+      const useraddressElement = document.getElementById('address');
+      useraddressElement.textContent = 'Customer Address: ' + address;
+
+      // Display the points
+      const userpointsElement = document.getElementById('cur_points');
+      userpointsElement.textContent = 'Current Points: ' + point;
+
+
+      let isPointsAdded = false; // Flag to keep track if points have been added
+
+      function AddPoint() {
+  if (isPointsAdded) {
+    return;
+  }
+
+  const pcusid = customerid;
+  const br = pcusid.substring(0, 3);
+
+  firebase
+    .database()
+    .ref("customer/" + br + "/" + pcusid)
+    .once("value", function (snap) {
+      const userData = snap.val();
+      if (userData) {
+        let p = userData.points || 0;
+
+        let pointstruct;
+
+        if (amnt < 1000) {
+          pointstruct = 0;
+        } else {
+          const div = amnt / 1000;
+          const intdiv = parseInt(div);
+          pointstruct = intdiv * 10;
+        }
+
+        firebase
+          .database()
+          .ref("customer/" + br + "/" + pcusid)
+          .update({
+            points: pointstruct + p
+          })
+          .then(() => {
+            isPointsAdded = true; // Set the flag to true indicating points have been added
+            const updatedPoints = pointstruct + p;
+            alert("Points updated. Updated points: " + updatedPoints);
+
+            // Send email to the user
+            const emailContent = `
+              <html>
+                <head>
+                  <title>Points Updated</title>
+                </head>
+                <body>
+                  <h1>Points Updated</h1>
+                  <p>Updated points: ${updatedPoints}</p>
+                </body>
+              </html>
+            `;
+
+            sendEmailToUser(emailContent);
+            window.location.href = 'index.html';
+          })
+          .catch(error => {
+            console.log("Error updating points:", error);
+          });
+      }
+    });
+}
+
+// Function to send an email
+
+const nodemailer = require('nodemailer');
+
+function sendEmailToUser(content) {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'radhaopticalsalem@gmail.com', // replace with your Gmail address
+      pass: 'hbaehrfkzlrauspi' // replace with your Gmail password or app password
+    }
+  });
+
+  const mailOptions = {
+    from: 'radhaopticalsalem@gmail.com', // replace with your Gmail address
+    to: 'ryogeshwaran369@gmail.com', // replace with the recipient's email address
+    subject: 'Points Updated',
+    html: content
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.error('Error sending email:', error);
+    
+    } else {
+      console.log('Email sent:', info.response);
+      // window.reloadApp()
+      
+    }
+  });
+}
+
+    </script>
+</body>
+</html>

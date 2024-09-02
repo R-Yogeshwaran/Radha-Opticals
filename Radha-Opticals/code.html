@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Hello World!</title>
+  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+  
+</head>
+<body>
+  <!-- top navigation -->
+  <div class="top-nav">
+    <div>
+     
+        <img onclick="navigateToPage('index')" class="top-nav-left-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688030495/logo_75-01_vgdwyi.png"/>
+     
+    </div>
+
+    <div>
+      
+        <img onclick="navigateToPage('preload1')" class="top-nav-right-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688032228/adduser_li07on.png"/>
+
+    </div>
+  </div>
+
+  <!-- top image -->
+  <!-- Add your image section here -->
+
+  <!-- customer id input -->
+  <div class="input-div">
+    <div style="display: flex;flex-direction: column;">
+      <input id="cusid" class="inputs" placeholder="Enter Customer ID"/>
+      <input id="amount" class="inputs" placeholder="Enter Total Amount"/>
+    </div>
+    <button id="txt" onclick="FindId()" class="button is-info">ENTER</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  
+  
+  <script>
+
+
+// alert(document.getElementById('cusid').value);
+
+function navigateToPage(pageName, data) {
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.send('navigate-to-pages', pageName, data);
+    }
+
+
+    const FindId = () => {
+  const custid = document.getElementById('cusid').value;
+  const br = custid.substring(0, 3);
+
+  firebase
+    .database()
+    .ref("customer/" + br + "/")
+    .orderByChild("customerid")
+    .equalTo(custid)
+    .once("value")
+    .then(function (snapshot) {
+      if (snapshot.exists()) {
+        snapshot.forEach(function (childSnapshot) {
+          var customerData = childSnapshot.val();
+          var username = customerData.username;
+          var pointsv = customerData.points;
+          var contact = customerData.contact;
+          var email = customerData.email;
+          var address = customerData.address;
+          var amount = document.getElementById('amount').value;
+
+          const newPageUrl = "preload2.html?username=" + encodeURIComponent(username) + "&pointsv=" + encodeURIComponent(pointsv) + "&contact=" + encodeURIComponent(contact) + "&email=" + encodeURIComponent(email) + "&address=" + encodeURIComponent(address) + "&id=" + encodeURIComponent(custid) + "&amount=" + encodeURIComponent(amount);
+
+          // Clear and enable the input fields
+          document.getElementById('cusid').value = "";
+          document.getElementById('amount').value = "";
+          document.getElementById('cusid').disabled = false;
+          document.getElementById('amount').disabled = false;
+
+          window.location.href = newPageUrl;
+        });
+      } else {
+        alert("No matching data found");
+        console.log(document.getElementById('cusid').value);
+        console.log(document.getElementById('amount').value);
+        console.log("Before clearing and enabling input fields");
+        document.getElementById('cusid').value = "";
+        document.getElementById('amount').value = "";
+        document.getElementById('cusid').disabled = false;
+        document.getElementById('amount').disabled = false;
+        console.log("ec" + document.getElementById('cusid').value);
+        console.log(document.getElementById('amount').value);
+      }
+    })
+    .catch(function (error) {
+      alert("Error retrieving data: " + error);
+      console.log("Before clearing and enabling input fields");
+      document.getElementById('cusid').value = "";
+          document.getElementById('amount').value = "";
+          document.getElementById('cusid').disabled = false;
+          document.getElementById('amount').disabled = false;
+    });
+}
+
+
+    const firebaseConfig = {
+      // Your Firebase configuration
+      apiKey: "AIzaSyASRfo6_z-BSQr-lVWqf57gy24qSI7GxbY",
+          authDomain: "radha-opticals-6c267.firebaseapp.com",
+          projectId: "radha-opticals-6c267",
+          storageBucket: "radha-opticals-6c267.appspot.com",
+          messagingSenderId: "122285195240",
+          appId: "1:122285195240:web:c699c53072d194431fae5d",
+          measurementId: "G-BK74PT22ZW"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+  </script>
+
+
+</body>
+</html>

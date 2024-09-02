@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+    <link rel="stylesheet" href="preload1.css" />
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css">
+  </head>
+  <body>
+    <!-- top navigation -->
+    <div class="top-nav">
+        <div>
+         
+            <img onclick="navigateToPage('index')" class="top-nav-left-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688030495/logo_75-01_vgdwyi.png"/>
+         
+        </div>
+    
+        <div>
+          
+            <img onclick="navigateToPage('preload1')" class="top-nav-right-img" src="https://res.cloudinary.com/dxhmtgtpg/image/upload/v1688032228/adduser_li07on.png"/>
+    
+        </div>
+      </div>
+
+    <!-- User rInputs -->
+    <div style="width: 100%;height: 95%; display: flex;justify-content: center;align-items: center;flex-direction: column;">
+        <div>
+            <h1 style="font-size: 30px;text-align: start;margin-bottom: 2%;">NEW USER REGISTRATION</h1>
+        </div>
+        <div class="input-cont"> 
+
+        <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+            <h1 style="font-size: 20px;font-weight: bold;">Customer Name : </h1>
+            <input  id="name" type="text" style="width: 56%;font-size: 20px;font-weight: bold;"/>
+        </div>
+
+        <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+            <h1 style="font-size: 20px;font-weight: bold;">Customer Contact : </h1>
+            <input id="contact" style="width: 50%;font-size: 20px;font-weight: bold;"/>
+        </div>
+
+        <div style="display: flex;flex-direction: row;justify-content: space-between;width: 45%;margin: 30px;">
+            <h1 style="font-size: 20px;font-weight: bold;">Customer Email : </h1>
+            <input id="gmail" type="email" style="width: 56%;font-size: 20px;font-weight: bold;"/>
+        </div>
+
+        <div style="display: flex;flex-direction: row;align-items: center; justify-content: space-between;width: 45%;margin: 30px;">
+            <h1 style="font-size: 20px;font-weight: bold;">Customer Address : </h1>
+            <textarea id="address" style="width: 50%;height: 60px;font-size: 15px;font-weight: bold;"></textarea>
+        </div>
+
+        <div style="display: flex;flex-direction: row;align-items: center; justify-content: space-between;width: 45%;margin: 30px;">
+            <h1 style="font-size: 20px;font-weight: bold;">Customer Address : </h1>
+          
+            <select id="branch" style="width: 50%;height: 30px;">
+                <option value="br1">Branch 1</option>
+                <option value="br2">Branch 2</option>
+                <option value="br3">Branch 3</option>
+                <option value="br4">Branch 4</option>
+            </select>
+        </div>
+        
+        <button id="txt" onclick="FindId()" style="width: 200px;" class="button is-info">ENTER</button>
+
+    </div>
+    </div>
+   
+
+
+
+
+
+
+
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <!-- Functions -->
+    <script>
+
+
+function navigateToPage(pageName) {
+      const { ipcRenderer } = require('electron');
+      ipcRenderer.send('navigate-to-page', pageName);
+    }
+   
+   let name,contact,email,address,branches;
+
+    Assign = () =>
+    {
+
+        username = document.getElementById('name').value;
+        contact = document.getElementById('contact').value;
+        gmail = document.getElementById('gmail').value;
+        address = document.getElementById('address').value;
+        branches = document.getElementById('branch').value;
+       
+        if (!username || !contact || !gmail || !address || ! branches) {
+            alert('Please fill in all the required fields.');
+            return false;
+        }
+        else{
+            return true;
+        }
+    }
+
+      const FindId=()=>
+      {
+        if(Assign())
+        {
+
+        firebase
+                .database()
+                .ref("customer/" + branches + "/")
+                .orderByKey()
+                .limitToLast(1)
+                .once("value")
+                .then(function(snapshot) {
+                    if (snapshot.exists()) {
+                        snapshot.forEach(function(childSnapshot) {
+                            var lastData = childSnapshot.val();
+                            if (lastData === null) {
+                                newId = 1;
+                            } else {
+                                var newId = parseInt(lastData.id) + 1;
+                                console.log("Last data:", lastData);
+                                console.log("New ID:", newId);
+                            }
+
+                            Assign();
+
+                            var customerid = branches.replace(/\s+/g, '') + "_" + newId.toString().padStart(3, '0');
+                            firebase
+                                .database()
+                                .ref("customer/" + branches + "/" + customerid)
+                                .set({
+                                    id: newId,
+                                    customerid: customerid,
+                                    username: username,
+                                    email: gmail,
+                                    address:address,
+                                    contact: contact,
+                                    points:50
+                                });
+
+                            alert("New User Added Succesfully with cusetomer Id : "+customerid);
+                        });
+                    } else {
+                        // Handle the case when there is no existing data
+                        var newId = 1;
+                        Assign();
+
+                        var customerid = branches.replace(/\s+/g, '') + "_" + newId.toString().padStart(3, '0');
+                        firebase
+                            .database()
+                            .ref("customer/" + branches + "/" + customerid)
+                            .set({
+                                    id: newId,
+                                    customerid: customerid,
+                                    username: username,
+                                    email: gmail,
+                                    address:address,
+                                    contact: contact,
+                                    points:50
+                            });
+
+                            alert("New User Added Succesfully with cusetomer Id : "+customerid);
+                            window.reloadApp()
+                    }
+                })
+                .catch(function(error) {
+                    console.log("Error retrieving last data:", error);
+                    window.reloadApp()
+                });
+        }
+        else
+        {
+            return;
+        }
+
+    }
+
+      const firebaseConfig = {
+          apiKey: "AIzaSyASRfo6_z-BSQr-lVWqf57gy24qSI7GxbY",
+          authDomain: "radha-opticals-6c267.firebaseapp.com",
+          projectId: "radha-opticals-6c267",
+          storageBucket: "radha-opticals-6c267.appspot.com",
+          messagingSenderId: "122285195240",
+          appId: "1:122285195240:web:c699c53072d194431fae5d",
+          measurementId: "G-BK74PT22ZW"
+      };
+
+// Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+
+    </script>
+
+  </body>
+</html>
