@@ -6,7 +6,7 @@ This software is developed for Radha Opticals, a prominent eyewear retailer loca
 Features
 Billing System: A user-friendly interface that facilitates quick and accurate generation of customer bills.
 Credit Point Management: Track customer purchases and award credit points based on predefined rules.
-Real-Time Data: All transaction and customer data is stored in the cloud for easy access and real-time updates.
+Real-Time Data: All transaction and customer data is stored in the cloud for easy access and real-time updates./n
 Multi-Platform Compatibility: Built using Electron.js, making it compatible across multiple operating systems like Windows, Mac, and Linux.
 Technology Stack
 Electron.js: Enables the application to run as a desktop app across multiple platforms.
